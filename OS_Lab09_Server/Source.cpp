@@ -1,9 +1,6 @@
 #include <windows.h>
 #include <iostream>
 #include <thread>
-#include <vector>
-
-#include <mutex>
 
 #define CURL_STATICLIB
 
@@ -13,10 +10,6 @@
 #pragma comment (lib, "Wldap32.lib")
 #pragma comment (lib, "Crypt32.lib")
 #pragma comment (lib, "advapi32.lib")
-
-
-
-
 
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* output) {
     size_t totalSize = size * nmemb;
@@ -92,10 +85,8 @@ std::string GenerateJoke(const std::string& prompt) {
         }
     }
 
-    //std::cout << response << "\n";
 
     std::string parsed = ParseResponse(response);
-    //std::cout << parsed << '\n';
     return parsed;
 }
 
@@ -116,146 +107,7 @@ const WCHAR* StringToWchar(const std::string& str) {
     return wideStr;
 }
 
-/*
-void CreateNamedPipeServer() {
-    LPCWSTR pipeName = L"\\\\.\\pipe\\Lab9Pipe";
-
-     //Explicitly delete the existing named pipe file
-    if (!DeleteFile(pipeName)) {
-        DWORD error = GetLastError();
-        if (error != ERROR_FILE_NOT_FOUND) {
-            std::wcerr << L"Error deleting named pipe file. Error code: " << error << std::endl;
-            return;
-        }
-    }
-
-    HANDLE hPipe = CreateNamedPipe(
-        pipeName,
-        PIPE_ACCESS_DUPLEX,
-        PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-        PIPE_UNLIMITED_INSTANCES,
-        4096,
-        4096,
-        NMPWAIT_USE_DEFAULT_WAIT,
-        NULL
-    );
-
-    if (hPipe == INVALID_HANDLE_VALUE) {
-        std::wcerr << L"Error creating named pipe. Error code: " << GetLastError() << std::endl;
-        return;
-    }
-
-    std::wcout << L"Named pipe server created successfully." << std::endl;
-
-    while (true) {
-        if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
-            std::wcout << L"Client connected to the named pipe." << std::endl;
-            const WCHAR* message = StringToWchar(GenerateJoke("Write me a joke about software engineering"));
-            DWORD bytesWritten;
-
-            if (WriteFile(hPipe, message, wcslen(message) * sizeof(WCHAR), &bytesWritten, NULL) != FALSE) {
-                std::wcout << L"Message sent to the client." << std::endl;
-            }
-            else {
-                std::wcerr << L"Error writing to the pipe. Error code: " << GetLastError() << std::endl;
-            }
-            DisconnectNamedPipe(hPipe);
-        }
-
-        Sleep(10000);
-    }
-
-    CloseHandle(hPipe);
-}
-*/
-
-//void HandleClient(HANDLE hPipe) {
-//    const WCHAR* message = StringToWchar(GenerateJoke("Write me a joke about software engineering"));
-//    DWORD bytesWritten;
-//
-//    if (WriteFile(hPipe, message, wcslen(message) * sizeof(WCHAR), &bytesWritten, NULL) != FALSE) {
-//        std::wcout << L"Message sent to the client." << std::endl;
-//    }
-//    else {
-//        std::wcerr << L"Error writing to the pipe. Error code: " << GetLastError() << std::endl;
-//    }
-//
-//    DisconnectNamedPipe(hPipe);
-//    CloseHandle(hPipe);
-//}
-/*
-void HandleClient(HANDLE hPipe) {
-    const WCHAR* message = L"Hello from the server!";
-    DWORD bytesWritten;
-
-    if (WriteFile(hPipe, message, wcslen(message) * sizeof(WCHAR), &bytesWritten, NULL) != FALSE) {
-        std::wcout << L"Message sent to the client." << std::endl;
-    }
-    else {
-        std::wcerr << L"Error writing to the pipe. Error code: " << GetLastError() << std::endl;
-    }
-
-    DisconnectNamedPipe(hPipe);
-    CloseHandle(hPipe);
-}
-
-void CreateNamedPipeServer() {
-    LPCWSTR pipeName = L"\\\\.\\pipe\\Lab9Pipe";
-
-    if (!DeleteFile(pipeName)) {
-        DWORD error = GetLastError();
-        if (error != ERROR_FILE_NOT_FOUND) {
-            std::wcerr << L"Error deleting named pipe file. Error code: " << error << std::endl;
-            return;
-        }
-    }
-
-    std::vector<std::thread> threads;
-
-    while (true) {
-        HANDLE hPipe = CreateNamedPipe(
-            pipeName,
-            PIPE_ACCESS_DUPLEX,
-            PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-            PIPE_UNLIMITED_INSTANCES,
-            4096,
-            4096,
-            NMPWAIT_USE_DEFAULT_WAIT,
-            NULL
-        );
-
-        if (hPipe == INVALID_HANDLE_VALUE) {
-            std::wcerr << L"Error creating named pipe. Error code: " << GetLastError() << std::endl;
-            return;
-        }
-
-        std::wcout << L"Named pipe server created successfully." << std::endl;
-
-        if (ConnectNamedPipe(hPipe, NULL) != FALSE) {
-            std::wcout << L"Client connected to the named pipe." << std::endl;
-
-            // Create a new thread to handle the client
-            threads.emplace_back(HandleClient, hPipe);
-        }
-        else {
-            std::wcerr << L"Error connecting to the pipe. Error code: " << GetLastError() << std::endl;
-            CloseHandle(hPipe);
-        }
-
-        std::this_thread::sleep_for(std::chrono::seconds(10)); // Wait for 10 seconds
-    }
-
-    // Wait for all threads to finish
-    for (auto& thread : threads) {
-        thread.join();
-    }
-}*/
-
-#define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "27015"
-
-// Mutex to protect access to shared data
-//std::mutex clientMutex;
 
 // Function to send jokes to clients
 void SendJokesToClients(SOCKET* clientSockets, int& clientCount) {
@@ -275,8 +127,33 @@ void SendJokesToClients(SOCKET* clientSockets, int& clientCount) {
             }
         }
 
-        // Sleep for 30 seconds (for testing purposes)
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        std::this_thread::sleep_for(std::chrono::seconds(20));
+    }
+}
+
+// Function to check for disconnected clients and remove them
+void CheckForDisconnectedClients(SOCKET* clientSockets, int& clientCount) {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(5)); // Adjust the sleep duration as needed
+
+        for (int i = 0; i < clientCount; ++i) {
+            char buffer[1];
+            int result = recv(clientSockets[i], buffer, sizeof(buffer), MSG_PEEK);
+            if (result == 0 || (result == SOCKET_ERROR && WSAGetLastError() == WSAECONNRESET)) {
+                // Client disconnected
+                std::cout << "Client " << i << " disconnected." << std::endl;
+
+                // Close the socket
+                closesocket(clientSockets[i]);
+
+                // Remove the client from the array
+                for (int j = i; j < clientCount - 1; ++j) {
+                    clientSockets[j] = clientSockets[j + 1];
+                }
+
+                clientCount--;
+            }
+        }
     }
 }
 
@@ -319,6 +196,9 @@ int main() {
     SOCKET clientSockets[MAX_CLIENTS];
     int clientCount = 0;
 
+    // Create a thread to check for disconnected clients
+    std::thread disconnectThread(CheckForDisconnectedClients, clientSockets, std::ref(clientCount));
+
     // Create a thread for sending jokes to clients
     std::thread jokeThread(SendJokesToClients, clientSockets, std::ref(clientCount));
 
@@ -331,49 +211,22 @@ int main() {
             return 1;
         }
 
-        // Lock before accessing client data
-        //std::lock_guard<std::mutex> lock(clientMutex);
-
         if (clientCount < MAX_CLIENTS) {
             clientSockets[clientCount] = clientSocket;
             clientCount++;
 
             std::cout << "New client connected. Client count: " << clientCount << std::endl;
-
         }
         else {
             std::cerr << "Too many clients. Connection rejected." << std::endl;
             closesocket(clientSocket);
         }
-
-        // Check for client disconnections
-        for (int i = 0; i < clientCount; ++i) {
-            char buffer[1];
-            int result = recv(clientSockets[i], buffer, sizeof(buffer), MSG_PEEK);
-            if (result != 0) {
-                // Client disconnected
-                std::cout << "Client " << i << " disconnected." << std::endl;
-
-                // Close the socket
-                closesocket(clientSockets[i]);
-
-                // Remove the client from the array
-                for (int j = i; j < clientCount - 1; ++j) {
-                    clientSockets[j] = clientSockets[j + 1];
-                }
-
-                clientCount--;
-            }
-        }
     }
 
-    // Join the jokeThread before exiting the program
     jokeThread.join();
 
     closesocket(listenSocket);
     WSACleanup();
-
-
 
     return 0;
 }
