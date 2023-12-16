@@ -95,7 +95,7 @@ std::string GenerateJoke(const std::string& prompt) {
     //std::cout << response << "\n";
 
     std::string parsed = ParseResponse(response);
-    std::cout << parsed << '\n';
+    //std::cout << parsed << '\n';
     return parsed;
 }
 
@@ -263,11 +263,12 @@ void SendJokesToClients(SOCKET* clientSockets, int& clientCount) {
         // Generate a new joke
         std::string joke = GenerateJoke("Write me a joke about software engineering");
 
-        // Lock before accessing client data
-        //std::lock_guard<std::mutex> lock(clientMutex);
+        std::cout << "Generated joke: " << ReplaceAll(joke, "\n", " ") << '\n';
 
         // Send the joke to all clients
         for (int i = 0; i < clientCount; ++i) {
+            std::cout << "Sending joke to " << i << "' client..." << '\n';
+
             int result = send(clientSockets[i], joke.c_str(), static_cast<int>(joke.length()), 0);
             if (result == SOCKET_ERROR) {
                 std::cerr << "Error sending joke to client " << i << ": " << WSAGetLastError() << std::endl;
