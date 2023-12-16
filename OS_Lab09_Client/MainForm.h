@@ -206,53 +206,14 @@ namespace OSLab09Client {
 	private: System::Void backgroundWorker1_RunWorkerCompleted(System::Object^ sender, System::ComponentModel::RunWorkerCompletedEventArgs^ e) {
 	}
 
-
-		   /*
-			   private: System::Void backgroundWorker1_DoWork(System::Object^ sender, System::ComponentModel::DoWorkEventArgs^ e) {
-				   String^ pipeName = L"\\\\.\\pipe\\Lab9Pipe";
-				   pin_ptr<const wchar_t> wname = PtrToStringChars(pipeName);
-
-				   while (!backgroundWorker1->CancellationPending)
-				   {
-					   HANDLE pipeHandle = CreateFile(wname, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
-
-					   if (pipeHandle != INVALID_HANDLE_VALUE)
-					   {
-						   wchar_t buffer[1024];
-						   DWORD bytesRead;
-
-						   memset(buffer, 0, sizeof(buffer));
-
-						   if (ReadFile(pipeHandle, buffer, sizeof(buffer), &bytesRead, NULL))
-						   {
-							   String^ message = marshal_as<String^>(buffer);
-							   message = message->Replace("\n", " \n");
-
-							   Console::WriteLine("Received message from server: " + message);
-
-							   notifyIcon1->ShowBalloonTip(3000, "A new joke has arrived", message, System::Windows::Forms::ToolTipIcon::Info);
-
-							   jokesTextBox->Text = message + Environment::NewLine + Environment::NewLine + jokesTextBox->Text;
-						   }
-
-						   CloseHandle(pipeHandle);
-					   }
-
-					   System::Threading::Thread::Sleep(100);
-				   }
-
-			   }
-			   */
-
 	private:
 		TcpClient^ client;
 		NetworkStream^ stream;
 
 		System::Void backgroundWorker1_DoWork(System::Object^ sender, DoWorkEventArgs^ e) {
-			array<unsigned char>^ buffer = gcnew array<unsigned char>(512); // Buffer to store received data
+			array<unsigned char>^ buffer = gcnew array<unsigned char>(512);
 
 			try {
-				// Replace this with your server IP address and port
 				String^ serverIp = "127.0.0.1";
 				int serverPort = 27015;
 
@@ -260,36 +221,28 @@ namespace OSLab09Client {
 				stream = client->GetStream();
 
 				while (true) {
-					// Check if the background worker is canceled
 					if (backgroundWorker1->CancellationPending) {
 						e->Cancel = true;
 						return;
 					}
 
-				try {
-					// Receive data from the server
-					int bytesRead = stream->Read(buffer, 0, buffer->Length);
-					if (bytesRead > 0) {
-						// Process the received data (e.g., update UI)
-						String^ message = Encoding::ASCII->GetString(buffer, 0, bytesRead);
-						notifyIcon1->ShowBalloonTip(3000, "A new joke has arrived", message, System::Windows::Forms::ToolTipIcon::Info);
+					try {
+						int bytesRead = stream->Read(buffer, 0, buffer->Length);
+						if (bytesRead > 0) {
+							String^ message = Encoding::ASCII->GetString(buffer, 0, bytesRead);
+							notifyIcon1->ShowBalloonTip(3000, "A new joke has arrived", message, System::Windows::Forms::ToolTipIcon::Info);
 
-						jokesTextBox->Text = message + Environment::NewLine + Environment::NewLine + jokesTextBox->Text;
+							jokesTextBox->Text = message + Environment::NewLine + Environment::NewLine + jokesTextBox->Text;
+						}
 					}
-				}
-				catch (Exception^ ex) {
-					// Handle exceptions (e.g., connection lost)
-					// You may want to log the exception or take appropriate action
-					Console::WriteLine("Exception: " + ex->Message);
-					// Optionally, you can close the connection and attempt to reconnect
-				}
+					catch (Exception^ ex) {
+						Console::WriteLine("Exception: " + ex->Message);
+					}
 
-				// Simulate a delay (adjust as needed)
-				Thread::Sleep(100);
-			}
+					Thread::Sleep(100);
+				}
 			}
 			catch (Exception^ ex) {
-				// Handle exceptions (e.g., connection failed)
 				Console::WriteLine("Exception: " + ex->Message);
 			}
 		}
@@ -323,11 +276,9 @@ namespace OSLab09Client {
 	}
 	private: System::Void saveButton_Click(System::Object^ sender, System::EventArgs^ e) {
 		if (!subscriptionCheckbox->Checked) {
-			// Stop the background worker
 			StopBackgroundWorker();
 		}
 		else {
-			// Start or restart the background worker
 			StartBackgroundWorker();
 		}
 	}
