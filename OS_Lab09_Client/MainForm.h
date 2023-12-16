@@ -4,6 +4,8 @@
 #include <msclr\marshal_cppstd.h>
 #include <vector>
 
+#include "resource.h"
+
 namespace OSLab09Client {
 
 	using namespace System;
@@ -30,7 +32,6 @@ namespace OSLab09Client {
 		MainForm(void)
 		{
 			InitializeComponent();
-			notifyIcon1->Icon = gcnew System::Drawing::Icon("meme_this_is_fine_dog.ico"); // Provide the path to your icon file
 			notifyIcon1->Visible = true;
 			backgroundWorker1->WorkerSupportsCancellation = true;
 			StartBackgroundWorker();
@@ -113,6 +114,7 @@ namespace OSLab09Client {
 			// notifyIcon1
 			// 
 			this->notifyIcon1->ContextMenuStrip = this->contextMenuStrip1;
+			this->notifyIcon1->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"notifyIcon1.Icon")));
 			this->notifyIcon1->Text = L"SE Memes";
 			this->notifyIcon1->Visible = true;
 			this->notifyIcon1->BalloonTipClicked += gcnew System::EventHandler(this, &MainForm::notifyIcon1_BalloonTipClicked);
