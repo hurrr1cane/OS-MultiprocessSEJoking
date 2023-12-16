@@ -57,7 +57,7 @@ std::string ParseResponse(const std::string& response) {
 }
 
 std::string GenerateJoke(const std::string& prompt) {
-    std::string apiKey = "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";
+    std::string apiKey = "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";
     std::string apiUrl = "https://api.openai.com/v1/chat/completions";
 
     CURL* curl = curl_easy_init();
@@ -85,6 +85,7 @@ std::string GenerateJoke(const std::string& prompt) {
         }
     }
 
+    //std::cout << response << '\n';
 
     std::string parsed = ParseResponse(response);
     return parsed;
